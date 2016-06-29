@@ -9,7 +9,7 @@ def make_arguments(inputs, output):
         return None
 
     if not _validate_output(output):
-        logging.error("invalid output".format(output))
+        logging.error("invalid output={}".format(output))
         return None
 
     arguments = [config.FFMPEG_PATH]
@@ -22,7 +22,7 @@ def make_arguments(inputs, output):
 
 def make_rtmp_url(output):
     if not _validate_output(output):
-        logging.error("invalid output".format(output))
+        logging.error("invalid output={}".format(output))
         return None
 
     target = output["target"]
@@ -107,7 +107,7 @@ def _dump_inputs(inputs, arguments):
         arguments.append("-i")
         arguments.append(input1["source"])
 
-    arguments.extend(["-acodec", "aac", "-strict", "-2"])
+    arguments.extend(["-acodec", "aac", "-strict", "-2"]) # workaround
 
 
 def _dump_background_filter(output, filters):
@@ -120,7 +120,7 @@ def _dump_background_filter(output, filters):
     else:
         filter1 = "nullsrc=size={}x{}".format(output["width"], output["height"])
 
-    filter1 += ' [out0]'
+    filter1 += " [out0]"
     filters.append(filter1)
 
 
@@ -131,7 +131,7 @@ def _dump_scale_filter(index, input1, filters):
         input1["height"]
     )
 
-    filter1 += ' [in{}]'.format(index)
+    filter1 += " [in{}]".format(index)
     filters.append(filter1)
 
 
@@ -144,7 +144,7 @@ def _dump_overlay_filter(index, input1, last_input, filters):
     )
 
     if not last_input:
-        filter1 += ' [out{}]'.format(index + 1)
+        filter1 += " [out{}]".format(index + 1)
 
     filters.append(filter1)
 
@@ -161,7 +161,7 @@ def _dump_video_filters(inputs, output, arguments):
         last_input = index + 1 == len(inputs)
         _dump_overlay_filter(index, input1, last_input, filters)
 
-    filters_string = '; '.join(filters)
+    filters_string = "; ".join(filters)
     arguments.append("-filter_complex")
     arguments.append(filters_string)
 

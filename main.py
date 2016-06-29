@@ -8,22 +8,15 @@ import encoder_mgr
 
 class MainHandler(BaseHTTPRequestHandler):
     def do_POST(self):
-        try:
-            if self.path == "/command" \
-               or (self.client_address[0] == "127.0.0.1" and self.path == "/callback"):
-                request = json.loads(self.rfile.read(int(self.headers["Content-Length"]))
-                                     .decode("utf-8"))
-            else:
-                self.send_response(404)
-                self.end_headers()
-                return
+        if self.path != "/command":
+            self.send_response(404)
+            self.end_headers()
+            return
 
-            if self.path == "/command":
-                command = request
-                result = handle_command(command)
-            else:
-                callback = request
-                result = handle_callback(callback)
+        try:
+            command = json.loads(self.rfile.read(int(self.headers["Content-Length"]))
+                                 .decode("utf-8"))
+            result = json.dumps(handle_command(command)).encode("utf-8")
         except:
             self.send_response(500)
             self.end_headers()
@@ -32,7 +25,7 @@ class MainHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-type", "application/json")
         self.end_headers()
-        self.wfile.write(json.dumps(result).encode("utf-8"))
+        self.wfile.write(result)
 
 
 def validate_command(command):
@@ -73,21 +66,6 @@ def handle_command(command):
             return {"success": False}
 
     return {"success": True}
-
-
-def handle_callback(callback):
-    if callback["action"] == "on_unpublish":
-        encoder_mgr.stop({
-            "target": {
-                "vhost": callback["vhost"],
-                "app": callback["app"],
-                "stream": callback["stream"]
-            },
-            "width": 0, # dummy
-            "height": 0 # dummy
-        })
-
-    return {"code": 0}
 
 
 logging.basicConfig(filename=config.LOGGING_FILE_NAME, level=config.LOGGING_LEVEL
