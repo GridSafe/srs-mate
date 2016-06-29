@@ -96,7 +96,8 @@ def _validate_output(output):
             return False
 
     if "background" in output:
-        if not isinstance(output["background"], str):
+        if not (isinstance(output["background"], str)
+                or isinstance(output["background"], int)):
             return False
 
     return True
@@ -112,7 +113,12 @@ def _dump_inputs(inputs, arguments):
 
 def _dump_background_filter(output, filters):
     if "background" in output:
-        filter1 = "movie={}, scale=width={}:height={}".format(
+        if isinstance(output["background"], str):
+            filter_format = "movie={}, scale=width={}:height={}"
+        else:
+            filter_format = "color=color=0x{:06X}:size={}x{}"
+
+        filter1 = filter_format.format(
             output["background"],
             output["width"],
             output["height"]

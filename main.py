@@ -1,6 +1,7 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import logging
+import sys
 
 import config
 import encoder_mgr
@@ -18,6 +19,7 @@ class MainHandler(BaseHTTPRequestHandler):
                                  .decode("utf-8"))
             result = json.dumps(handle_command(command)).encode("utf-8")
         except:
+            logging.exception('uncaught exception')
             self.send_response(500)
             self.end_headers()
             return
@@ -32,10 +34,11 @@ def validate_command(command):
     if "action" not in command:
         return False
 
-    if command["action"] != "start" and command["action"] != "stop":
+    if command["action"] != "start" and command["action"] != "stop" \
+       and command["action"] != "restart":
         return False
 
-    if command["action"] == "start":
+    if command["action"] == "start" or command["action"] == "restart":
         if "inputs" not in command:
             return False
 
@@ -56,13 +59,14 @@ def handle_command(command):
         logging.error("invalid command={}".format(command))
         return {"success": False}
 
-    if command["action"] == "start":
-        if not encoder_mgr.start(command["inputs"], command["output"]):
-            logging.error("failed to start encoder")
-            return {"success": False}
-    else:
+    if command["action"] in ["restart", "stop"]:
         if not encoder_mgr.stop(command["output"]):
             logging.error("failed to stop encoder")
+            return {"success": False}
+
+    if command["action"] in ["restart", "start"]:
+        if not encoder_mgr.start(command["inputs"], command["output"]):
+            logging.error("failed to start encoder")
             return {"success": False}
 
     return {"success": True}

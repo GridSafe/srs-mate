@@ -1,4 +1,5 @@
 import subprocess
+import logging
 
 import ffmpeg_cmd_line
 
@@ -14,7 +15,8 @@ def start(inputs, output):
         return False
 
     if _process_exists(name):
-        _destroy_process(name)
+        logging.error("encoder is already running")
+        return False
 
     cmd_line_args = ffmpeg_cmd_line.make_arguments(inputs, output)
 
@@ -36,9 +38,11 @@ def stop(output):
         logging.error("failed to make encoder name")
         return False
 
-    if _process_exists(name):
-        _destroy_process(name)
+    if not _process_exists(name):
+        logging.error("encoder is not running")
+        return False
 
+    _destroy_process(name)
     return True
 
 
