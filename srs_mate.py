@@ -1,13 +1,12 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import logging
-import sys
 
 import config
 import encoder_mgr
 
 
-class MainHandler(BaseHTTPRequestHandler):
+class _CommandHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         if self.path != "/command":
             self.send_response(404)
@@ -17,7 +16,7 @@ class MainHandler(BaseHTTPRequestHandler):
         try:
             command = json.loads(self.rfile.read(int(self.headers["Content-Length"]))
                                  .decode("utf-8"))
-            result = json.dumps(handle_command(command)).encode("utf-8")
+            result = json.dumps(_handle_command(command)).encode("utf-8")
         except:
             logging.exception('uncaught exception')
             self.send_response(500)
@@ -30,7 +29,7 @@ class MainHandler(BaseHTTPRequestHandler):
         self.wfile.write(result)
 
 
-def validate_command(command):
+def _validate_command(command):
     if "action" not in command:
         return False
 
@@ -54,8 +53,8 @@ def validate_command(command):
     return True
 
 
-def handle_command(command):
-    if not validate_command(command):
+def _handle_command(command):
+    if not _validate_command(command):
         logging.error("invalid command={}".format(command))
         return {"success": False}
 
@@ -72,8 +71,9 @@ def handle_command(command):
     return {"success": True}
 
 
-logging.basicConfig(filename=config.LOGGING_FILE_NAME, level=config.LOGGING_LEVEL
-                    , format=config.LOGGING_FORMAT)
+if __name__ == "__main__":
+    logging.basicConfig(filename=config.LOGGING_FILE_NAME, level=config.LOGGING_LEVEL
+                        , format=config.LOGGING_FORMAT)
 
-http_server = HTTPServer((config.HOST, config.PORT), MainHandler)
-http_server.serve_forever()
+    http_server = HTTPServer((config.HOST, config.PORT), _CommandHandler)
+    http_server.serve_forever()

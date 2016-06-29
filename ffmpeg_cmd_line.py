@@ -181,7 +181,8 @@ def _dump_audio_filters(inputs, arguments):
 def _dump_output(output, arguments):
     target = output["target"]
 
-    rtmp_url = "rtmp://127.0.0.1:{}/{}?vhost={}/{}".format(
+    rtmp_url = "rtmp://{}:{}/{}?vhost={}/{}".format(
+        config.SRS_HOST,
         config.SRS_PORT,
         target["app"],
         target["vhost"],
