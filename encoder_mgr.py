@@ -54,6 +54,7 @@ def _create_process(name, cmd_line_args):
             stderr=subprocess.DEVNULL
         )
     except:
+        logging.exception("popen failed")
         return False
 
     _processes[name] = process

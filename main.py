@@ -75,5 +75,5 @@ def handle_command(command):
 logging.basicConfig(filename=config.LOGGING_FILE_NAME, level=config.LOGGING_LEVEL
                     , format=config.LOGGING_FORMAT)
 
-http_server = HTTPServer(("", config.PORT), MainHandler)
+http_server = HTTPServer((config.HOST, config.PORT), MainHandler)
 http_server.serve_forever()
