@@ -19,7 +19,7 @@ class _CommandHandler(BaseHTTPRequestHandler):
                                  .decode("utf-8"))
             result = json.dumps(_handle_command(command)).encode("utf-8")
         except:
-            logging.exception('uncaught exception')
+            logging.exception("uncaught exception")
             self.send_response(500)
             self.end_headers()
             return

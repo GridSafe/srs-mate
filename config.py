@@ -1,6 +1,3 @@
-import logging
-
-
 HOST = ""
 PORT = 8787
 FFMPEG_PATH = "ffmpeg"
@@ -22,7 +19,7 @@ LOGGING = {
             "level": "DEBUG",
             "class": "logging.FileHandler",
             "formatter": "local",
-	    "localname": "srs_mate.log"
+	    "filename": "srs_mate.log"
 	},
 
         "sentry": {

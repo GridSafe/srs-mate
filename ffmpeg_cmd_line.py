@@ -111,38 +111,41 @@ def _dump_inputs(inputs, arguments):
     arguments.extend(["-acodec", "aac", "-strict", "-2"]) # workaround
 
 
-def _dump_background_filter(output, filters):
-    if "background" in output:
-        if isinstance(output["background"], str):
-            filter_format = "movie={}, scale=width={}:height={}"
-        else:
-            filter_format = "color=color=0x{:06X}:size={}x{}"
+def _dump_background_filters(output, filters):
+    filter1 = "nullsrc=size={}x{} [dummy]".format(output["width"], output["height"])
+    background = output.get("background", 0)
 
-        filter1 = filter_format.format(
-            output["background"],
-            output["width"],
-            output["height"]
-        )
+    if isinstance(background, str):
+        template = "movie={}, scale=width={}:height={}"
     else:
-        filter1 = "nullsrc=size={}x{}".format(output["width"], output["height"])
+        template = "color=color=0x{:06X}:size={}x{}"
 
-    filter1 += " [out0]"
+    filter2 = template.format(
+        background,
+        output["width"],
+        output["height"]
+    )
+
+    filter2 += " [background]"
+    filter3 = "[dummy][background] overlay=x=0:y=0 [output0]"
     filters.append(filter1)
+    filters.append(filter2)
+    filters.append(filter3)
 
 
 def _dump_scale_filter(index, input1, filters):
-    filter1 = "[{}:v] scale=width={}:height={}".format(
+    filter1 = "[{}:v] scale=width={}:height={} [input{}]".format(
         index,
         input1["width"],
-        input1["height"]
+        input1["height"],
+        index
     )
 
-    filter1 += " [in{}]".format(index)
     filters.append(filter1)
 
 
 def _dump_overlay_filter(index, input1, last_input, filters):
-    filter1 = "[out{}][in{}] overlay=x={}:y={}".format(
+    filter1 = "[output{}][input{}] overlay=x={}:y={}".format(
         index,
         index,
         input1["left"],
@@ -150,7 +153,7 @@ def _dump_overlay_filter(index, input1, last_input, filters):
     )
 
     if not last_input:
-        filter1 += " [out{}]".format(index + 1)
+        filter1 += " [output{}]".format(index + 1)
 
     filters.append(filter1)
 
@@ -161,7 +164,7 @@ def _dump_video_filters(inputs, output, arguments):
     for index, input1 in enumerate(inputs):
         _dump_scale_filter(index, input1, filters)
 
-    _dump_background_filter(output, filters)
+    _dump_background_filters(output, filters)
 
     for index, input1 in enumerate(inputs):
         last_input = index + 1 == len(inputs)
