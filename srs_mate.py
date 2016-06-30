@@ -1,6 +1,7 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import logging
+import logging.config
 
 import config
 import encoder_mgr
@@ -72,8 +73,6 @@ def _handle_command(command):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(filename=config.LOGGING_FILE_NAME, level=config.LOGGING_LEVEL
-                        , format=config.LOGGING_FORMAT)
-
+    logging.config.dictConfig(config.LOGGING)
     http_server = HTTPServer((config.HOST, config.PORT), _CommandHandler)
     http_server.serve_forever()

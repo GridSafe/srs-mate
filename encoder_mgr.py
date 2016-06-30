@@ -15,19 +15,20 @@ def start(inputs, output):
         return False
 
     if _process_exists(name):
-        logging.error("encoder is already running")
+        logging.error("encoder is already running, name={}".format(name))
         return False
 
     cmd_line_args = ffmpeg_cmd_line.make_arguments(inputs, output)
 
     if cmd_line_args is None:
-        logging.error("failed to make encoder command line argumens")
+        logging.error("failed to make encoder command line argumens, name={}".format(name))
         return False
 
     if not _create_process(name, cmd_line_args):
-        logging.error("failed to start encoder process")
+        logging.error("failed to start encoder process, cmd_line_args={}".format(cmd_line_args))
         return False
 
+    logging.info("encoder started, name={}".format(name))
     return True
 
 
@@ -39,10 +40,11 @@ def stop(output):
         return False
 
     if not _process_exists(name):
-        logging.error("encoder is not running")
+        logging.error("encoder is not running, name={}".format(name))
         return False
 
     _destroy_process(name)
+    logging.info("encoder stoped, name={}".format(name))
     return True
 
 
