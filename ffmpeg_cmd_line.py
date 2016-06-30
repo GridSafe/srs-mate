@@ -3,6 +3,9 @@ import logging
 import config
 
 
+DEFAULT_INPUT_IS_MUTE = False
+
+
 def make_arguments(inputs, output):
     if not _validate_inputs(inputs):
         logging.error("invalid inputs={}".format(inputs))
@@ -53,6 +56,9 @@ def _validate_input(input1):
         if input1[key] < 0:
             return False
 
+    if not isinstance(input1.get("is_mute", DEFAULT_INPUT_IS_MUTE), bool):
+        return False
+
     return True
 
 
@@ -95,9 +101,8 @@ def _validate_output(output):
         if output[key] < 0:
             return False
 
-    if "background" in output:
-        if not (isinstance(output["background"], str)
-                or isinstance(output["background"], int)):
+    if "background_color" in output:
+        if not isinstance(output["background_color"], int):
             return False
 
     return True
@@ -105,70 +110,76 @@ def _validate_output(output):
 
 def _dump_inputs(inputs, arguments):
     for input1 in inputs:
+        if input1.get("is_mute", DEFAULT_INPUT_IS_MUTE):
+            continue
+
         arguments.append("-i")
         arguments.append(input1["source"])
 
     arguments.extend(["-acodec", "aac", "-strict", "-2"]) # workaround
 
 
-def _dump_background_filters(output, filters):
-    filter1 = "nullsrc=size={}x{} [dummy]".format(output["width"], output["height"])
-    background = output.get("background", 0)
-
-    if isinstance(background, str):
-        template = "movie={}, scale=width={}:height={}"
+def _dump_background_filter(output, filters):
+    if "background_color" in output:
+        filter1 = "color=color=0x{:06X}:size={}x{} [out0]".format(
+            output["background_color"],
+            output["width"],
+            output["height"]
+        )
     else:
-        template = "color=color=0x{:06X}:size={}x{}"
-
-    filter2 = template.format(
-        background,
-        output["width"],
-        output["height"]
-    )
-
-    filter2 += " [background]"
-    filter3 = "[dummy][background] overlay=x=0:y=0 [output0]"
-    filters.append(filter1)
-    filters.append(filter2)
-    filters.append(filter3)
-
-
-def _dump_scale_filter(index, input1, filters):
-    filter1 = "[{}:v] scale=width={}:height={} [input{}]".format(
-        index,
-        input1["width"],
-        input1["height"],
-        index
-    )
+        filter1 = "nullsrc=size={}x{} [out0]".format(output["width"], output["height"])
 
     filters.append(filter1)
 
 
-def _dump_overlay_filter(index, input1, last_input, filters):
-    filter1 = "[output{}][input{}] overlay=x={}:y={}".format(
+def _dump_scale_filter(index, input1, mute_input_count, filters):
+    if input1.get("is_mute", DEFAULT_INPUT_IS_MUTE):
+        filter1 = "movie='{}', scale=width={}:height={} [in{}]".format(
+            input1["source"].replace("\\", "\\\\").replace(":", "\:"),
+            input1["width"],
+            input1["height"],
+            index
+        )
+    else:
+        filter1 = "[{}:v] scale=width={}:height={} [in{}]".format(
+            index - mute_input_count,
+            input1["width"],
+            input1["height"],
+            index
+        )
+
+    filters.append(filter1)
+
+
+def _dump_overlay_filter(index, input1, is_last_input, filters):
+    filter1 = "[out{}][in{}] overlay=x={}:y={}".format(
         index,
         index,
         input1["left"],
         input1["top"]
     )
 
-    if not last_input:
-        filter1 += " [output{}]".format(index + 1)
+    if not is_last_input:
+        filter1 += " [out{}]".format(index + 1)
 
     filters.append(filter1)
 
 
 def _dump_video_filters(inputs, output, arguments):
     filters = []
+    mute_input_count = 0
 
     for index, input1 in enumerate(inputs):
-        _dump_scale_filter(index, input1, filters)
+        _dump_scale_filter(index, input1, mute_input_count, filters)
 
-    _dump_background_filters(output, filters)
+        if input1.get("is_mute", DEFAULT_INPUT_IS_MUTE):
+            mute_input_count += 1
+
+    _dump_background_filter(output, filters)
 
     for index, input1 in enumerate(inputs):
-        last_input = index + 1 == len(inputs)
-        _dump_overlay_filter(index, input1, last_input, filters)
+        is_last_input = index + 1 == len(inputs)
+        _dump_overlay_filter(index, input1, is_last_input, filters)
 
     filters_string = "; ".join(filters)
     arguments.append("-filter_complex")
@@ -176,7 +187,18 @@ def _dump_video_filters(inputs, output, arguments):
 
 
 def _dump_audio_filters(inputs, arguments):
-    filter1 = "amix=inputs={}".format(len(inputs))
+    n = 0
+
+    for input1 in inputs:
+        if input1.get("is_mute", DEFAULT_INPUT_IS_MUTE):
+            continue
+
+        n += 1
+
+    if n == 0:
+        return
+
+    filter1 = "amix=inputs={}".format(n)
     arguments.append("-filter_complex")
     arguments.append(filter1)
 

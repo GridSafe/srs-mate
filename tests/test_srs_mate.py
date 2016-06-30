@@ -33,7 +33,7 @@ class TestSrsMate(unittest.TestCase):
                 },
                 "width": 1280,
                 "height": 720,
-                "background": 0xFFFFFF
+                "background_color": 0xFFFFFF
             }
         }
 
@@ -65,7 +65,7 @@ class TestSrsMate(unittest.TestCase):
                 },
                 "width": 1280,
                 "height": 720,
-                "background": 0xFFFFFF
+                "background_color": 0xFFFFFF
             }
         }
 
