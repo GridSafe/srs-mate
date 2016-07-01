@@ -74,5 +74,5 @@ def _handle_command(command):
 
 if __name__ == "__main__":
     logging.config.dictConfig(config.LOGGING)
-    http_server = HTTPServer((config.HOST, config.PORT), _CommandHandler)
+    http_server = HTTPServer((config.LISTEN_HOST, config.LISTEN_PORT), _CommandHandler)
     http_server.serve_forever()

@@ -11,6 +11,7 @@ class TestSrsMate(unittest.TestCase):
             "action": "start",
             "inputs": [
                 {
+                    "is_mute": True,
                     "source": "rtmp://localhost/test/test1",
                     "left": 0,
                     "top": 0,
@@ -43,6 +44,7 @@ class TestSrsMate(unittest.TestCase):
             "action": "restart",
             "inputs": [
                 {
+                    "is_mute": True,
                     "source": "rtmp://localhost/test/test2",
                     "left": 0,
                     "top": 0,

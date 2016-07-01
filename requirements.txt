@@ -1,0 +1,2 @@
+contextlib2==0.5.3
+raven==5.21.0

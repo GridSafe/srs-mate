@@ -1,8 +1,11 @@
-HOST = ""
-PORT = 8787
-FFMPEG_PATH = "ffmpeg"
-SRS_HOST = "127.0.0.1"
-SRS_PORT = 1935
+import os
+
+
+LISTEN_HOST = os.environ.get("LISTEN_HOST", "")
+LISTEN_PORT = int(os.environ.get("LISTEN_PORT", "8787"))
+FFMPEG_PATH = os.environ.get("FFMPEG_PATH", "ffmpeg")
+SRS_HOST = os.environ.get("SRS_HOST", "127.0.0.1")
+SRS_PORT = int(os.environ.get("SRS_PORT", "1935"))
 
 LOGGING = {
     "version": 1,
@@ -17,9 +20,8 @@ LOGGING = {
     "handlers": {
         "local": {
             "level": "DEBUG",
-            "class": "logging.FileHandler",
+            "class": "logging.StreamHandler",
             "formatter": "local",
-	    "filename": "srs_mate.log"
 	},
 
         "sentry": {

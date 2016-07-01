@@ -116,7 +116,7 @@ def _dump_inputs(inputs, arguments):
         arguments.append("-i")
         arguments.append(input1["source"])
 
-    arguments.extend(["-acodec", "aac", "-strict", "-2"]) # workaround
+    arguments.extend(["-acodec", "aac", "-strict", "experimental"]) # workaround
 
 
 def _dump_background_filter(output, filters):
@@ -135,7 +135,7 @@ def _dump_background_filter(output, filters):
 def _dump_scale_filter(index, input1, mute_input_count, filters):
     if input1.get("is_mute", DEFAULT_INPUT_IS_MUTE):
         filter1 = "movie='{}', scale=width={}:height={} [in{}]".format(
-            input1["source"].replace("\\", "\\\\").replace(":", "\:"),
+            input1["source"].replace("\\", "\\\\").replace("'", "\\'").replace(":", "\\:"),
             input1["width"],
             input1["height"],
             index
