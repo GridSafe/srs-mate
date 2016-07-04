@@ -101,8 +101,19 @@ def _validate_output(output):
         if output[key] < 0:
             return False
 
+    for key in ["video_bitrate", "video_bitrate"]:
+        if key in output:
+            if not isinstance(output[key], int):
+                return False
+
+            if output[key] < 0:
+                return False
+
     if "background_color" in output:
         if not isinstance(output["background_color"], int):
+            return False
+
+        if output["background_color"] < 0 or output["background_color"] > 0xFFFFFF:
             return False
 
     return True
@@ -115,8 +126,6 @@ def _dump_inputs(inputs, arguments):
 
         arguments.append("-i")
         arguments.append(input1["source"])
-
-    arguments.extend(["-acodec", "aac", "-strict", "experimental"]) # workaround
 
 
 def _dump_background_filter(output, filters):
@@ -213,6 +222,23 @@ def _dump_output(output, arguments):
         target["vhost"],
         target["stream"]
     )
+
+    arguments.extend([
+        "-c:v",
+        "libx264",
+        "-c:a",
+        "aac",
+        "-strict",
+        "experimental",
+    ])
+
+    if "video_bitrate" in output:
+        arguments.append("-b:v")
+        arguments.append("{}k".format(output["video_bitrate"]))
+
+    if "audio_bitrate" in output:
+        arguments.append("-b:a")
+        arguments.append("{}k".format(output["audio_bitrate"]))
 
     arguments.append("-f")
     arguments.append("flv")
