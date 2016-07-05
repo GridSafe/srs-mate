@@ -39,3 +39,5 @@ LOGGING = {
 	}
     }
 }
+
+MAX_NUMBER_OF_OUTPUT = 65536
