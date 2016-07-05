@@ -101,7 +101,7 @@ def _validate_output(output):
         if output[key] < 0:
             return False
 
-    for key in ["video_bitrate", "video_bitrate"]:
+    for key in ["video_bitrate", "audio_bitrate"]:
         if key in output:
             if not isinstance(output[key], int):
                 return False

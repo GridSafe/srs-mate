@@ -97,6 +97,7 @@ def _handle_command(command):
 
 
 def _get_next_output_id():
+    global _last_output_id
     output_id = (_last_output_id + 1) % config.MAX_NUMBER_OF_OUTPUT
 
     for _ in range(config.MAX_NUMBER_OF_OUTPUT):

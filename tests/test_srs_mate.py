@@ -34,14 +34,18 @@ class TestSrsMate(unittest.TestCase):
                 },
                 "width": 1280,
                 "height": 720,
-                "background_color": 0xFFFFFF
+                "background_color": 0xFFFFFF,
+                "video_bitrate": 480,
+                "audio_bitrate": 320
             }
         }
 
-        self.assertEqual(srs_mate._handle_command(start_command), {"success": True})
+        result = srs_mate._handle_command(start_command)
+        self.assertTrue(result["success"])
 
         restart_command = {
             "action": "restart",
+            "output_id": result["output_id"],
             "inputs": [
                 {
                     "is_mute": True,
@@ -67,23 +71,19 @@ class TestSrsMate(unittest.TestCase):
                 },
                 "width": 1280,
                 "height": 720,
-                "background_color": 0xFFFFFF
+                "background_color": 0xFFFFFF,
+                "video_bitrate": 480,
+                "audio_bitrate": 320
             }
         }
 
-        self.assertEqual(srs_mate._handle_command(restart_command), {"success": True})
+        result = srs_mate._handle_command(restart_command)
+        self.assertTrue(result["success"])
 
         stop_command = {
             "action": "stop",
-            "output": {
-                "target": {
-                    "vhost": "localhost",
-                    "app": "test",
-                    "stream": "test3"
-                },
-                "width": 0,
-                "height": 0
-            }
+            "output_id": result["output_id"]
         }
 
-        self.assertEqual(srs_mate._handle_command(stop_command), {"success": True})
+        result = srs_mate._handle_command(stop_command)
+        self.assertTrue(result["success"])
