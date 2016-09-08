@@ -14,7 +14,7 @@ LOGGING = {
     "formatters": {
         "local": {
             "format": "[%(asctime)s][%(levelname)s] %(message)s",
-	},
+        },
     },
 
     "handlers": {
@@ -22,13 +22,13 @@ LOGGING = {
             "level": "DEBUG",
             "class": "logging.StreamHandler",
             "formatter": "local",
-	},
+        },
 
         "sentry": {
             "level": "ERROR",
             "class": "raven.handlers.logging.SentryHandler",
             "dsn": "https://<key>:<secret>@app.getsentry.com/<project>",
-   	},
+        },
     },
 
     "loggers": {
@@ -36,8 +36,8 @@ LOGGING = {
             "handlers": ["local", "sentry"],
             "level": "DEBUG",
             "propagate": False,
-	}
+        }
     }
 }
 
-MAX_NUMBER_OF_OUTPUT = 65536
+MAX_NUMBER_OF_OUTPUTS = 65536

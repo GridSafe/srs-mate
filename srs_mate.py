@@ -98,13 +98,13 @@ def _handle_command(command):
 
 def _get_next_output_id():
     global _last_output_id
-    output_id = (_last_output_id + 1) % config.MAX_NUMBER_OF_OUTPUT
+    output_id = (_last_output_id + 1) % config.MAX_NUMBER_OF_OUTPUTS
 
-    for _ in range(config.MAX_NUMBER_OF_OUTPUT):
+    for _ in range(config.MAX_NUMBER_OF_OUTPUTS):
         if output_id not in _outputs:
             break
 
-        output_id = (output_id + 1) % config.MAX_NUMBER_OF_OUTPUT
+        output_id = (output_id + 1) % config.MAX_NUMBER_OF_OUTPUTS
 
     if output_id in _outputs:
         output = _outputs[output_id]
