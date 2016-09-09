@@ -23,22 +23,6 @@ def make_arguments(inputs, output):
     return arguments
 
 
-def make_rtmp_url(output):
-    if not _validate_output(output):
-        logging.error("invalid output={}".format(output))
-        return None
-
-    target = output["target"]
-
-    rtmp_url = "rtmp://{}/{}/{}".format(
-        target["vhost"],
-        target["app"],
-        target["stream"]
-    )
-
-    return rtmp_url
-
-
 def _validate_input(input1):
     if "source" not in input1:
         return False
@@ -71,7 +55,7 @@ def _validate_inputs(inputs):
 
 
 def _validate_output_target(target):
-    for key in ["vhost", "app", "stream"]:
+    for key in ["host", "app", "stream"]:
         if key not in target:
             return False
 
@@ -82,14 +66,21 @@ def _validate_output_target(target):
 
 
 def _validate_output(output):
-    if "target" not in output:
+    if "targets" not in output:
         return False
 
-    if not isinstance(output["target"], dict):
+    if not isinstance(output["targets"], list):
         return False
 
-    if not _validate_output_target(output["target"]):
+    if len(output["targets"]) == 0:
         return False
+
+    for target in output["targets"]:
+        if not isinstance(target, dict):
+            return False
+
+        if not _validate_output_target(target):
+            return False
 
     for key in ["width", "height"]:
         if key not in output:
@@ -213,16 +204,6 @@ def _dump_audio_filters(inputs, arguments):
 
 
 def _dump_output(output, arguments):
-    target = output["target"]
-
-    rtmp_url = "rtmp://{}:{}/{}?vhost={}/{}".format(
-        config.SRS_HOST,
-        config.SRS_PORT,
-        target["app"],
-        target["vhost"],
-        target["stream"]
-    )
-
     arguments.extend([
         "-c:v",
         "libx264",
@@ -240,7 +221,22 @@ def _dump_output(output, arguments):
         arguments.append("-b:a")
         arguments.append("{}k".format(output["audio_bitrate"]))
 
+    rtmp_urls = []
+
+    for target in output["targets"]:
+        rtmp_url = _make_rtmp_url(target)
+        rtmp_urls.append(rtmp_url)
+
     arguments.append("-f")
     arguments.append("flv")
-    arguments.append("-y")
-    arguments.append(rtmp_url)
+    arguments.append("tee:" + "|".join(list(rtmp_urls)))
+
+
+def _make_rtmp_url(target):
+    rtmp_url = "rtmp://{}/{}/{}".format(
+        target["host"],
+        target["app"],
+        target["stream"]
+    )
+
+    return rtmp_url

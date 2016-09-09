@@ -7,10 +7,6 @@ import config
 import encoder_mgr
 
 
-_outputs = {}
-_last_output_id = -1
-
-
 class _CommandHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         if self.path != "/command":
@@ -73,63 +69,23 @@ def _handle_command(command):
         return result
 
     if command["action"] in ["stop", "restart"]:
-        output = _get_output(command["output_id"])
+        vpid = command["output_id"]
 
-        if output is None:
-            logging.error("invalid output_id={}".format(command["output_id"]))
-            return result
-
-        _delete_output(command["output_id"])
-
-        if not encoder_mgr.stop(output):
+        if not encoder_mgr.stop(vpid):
             logging.error("failed to stop encoder")
             return result
 
     if command["action"] in ["start", "restart"]:
-        if not encoder_mgr.start(command["inputs"], command["output"]):
+        vpid = encoder_mgr.start(command["inputs"], command["output"])
+
+        if vpid is None:
             logging.error("failed to start encoder")
             return result
 
-        result["output_id"] = _add_output(command["output"])
+        result["output_id"] = vpid
 
     result["success"] = True
     return result
-
-
-def _get_next_output_id():
-    global _last_output_id
-    output_id = (_last_output_id + 1) % config.MAX_NUMBER_OF_OUTPUTS
-
-    for _ in range(config.MAX_NUMBER_OF_OUTPUTS):
-        if output_id not in _outputs:
-            break
-
-        output_id = (output_id + 1) % config.MAX_NUMBER_OF_OUTPUTS
-
-    if output_id in _outputs:
-        output = _outputs[output_id]
-        del _outputs[output_id]
-
-        if not encoder_mgr.stop(output):
-            logging.error("failed to stop encoder")
-            return result
-
-    _last_output_id = output_id
-    return output_id
-
-
-def _add_output(output):
-    output_id = _get_next_output_id()
-    _outputs[output_id] = output
-    return output_id
-
-
-def _delete_output(output_id):
-    del _outputs[output_id]
-
-
-def _get_output(output_id):
-    return _outputs.get(output_id)
 
 
 if __name__ == "__main__":
