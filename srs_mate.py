@@ -73,7 +73,9 @@ def _handle_command(command):
 
         if not encoder_mgr.stop(vpid):
             logging.error("failed to stop encoder")
-            return result
+
+            if command["action"] == "stop":
+                return result
 
     if command["action"] in ["start", "restart"]:
         vpid = encoder_mgr.start(command["inputs"], command["output"])
